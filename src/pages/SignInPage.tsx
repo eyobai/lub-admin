@@ -43,7 +43,7 @@ export function SignInPage() {
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center justify-center gap-2 text-xl font-bold tracking-tight">
           <img src="/favicon.svg" alt="" className="h-9 w-9" />
-          LyuBid Admin
+          LeyuBid Admin
         </div>
         <Card className="p-6">
           <h1 className="text-2xl font-bold tracking-tight">Staff sign in</h1>

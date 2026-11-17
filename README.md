@@ -1,4 +1,4 @@
-# LyuBid Admin — back office
+# LeyuBid Admin — back office
 
 The staff website of the Lowest Unique Bid auction platform: products, auctions, winners and deliveries, users,
 wallets, deposits, the ledger check and the audit trail. It is its own project and talks to the backend
