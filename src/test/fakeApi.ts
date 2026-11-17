@@ -9,8 +9,18 @@ export interface RecordedCall {
   query: URLSearchParams;
   authorization: string | null;
   idempotencyKey: string | null;
+  contentType: string | null;
   body: unknown;
 }
+
+/** JSON bodies as objects; anything else (a multipart upload) as its raw text. */
+const parseBody = (text: string): unknown => {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
+};
 
 type Reply = [status: number, body?: unknown];
 type Handler = (call: RecordedCall) => Reply | Promise<Reply>;
@@ -31,7 +41,8 @@ export function fakeApi(handlers: Record<string, Handler | Reply>) {
       query: url.searchParams,
       authorization: request.headers.get('authorization'),
       idempotencyKey: request.headers.get('idempotency-key'),
-      body: text ? JSON.parse(text) : undefined,
+      contentType: request.headers.get('content-type'),
+      body: text ? parseBody(text) : undefined,
     };
     calls.push(call);
     const handler = handlers[`${call.method} ${call.path}`];

@@ -146,3 +146,61 @@ describe('an auction', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('server wording for AUCTION_INVALID_STATE');
   });
 });
+
+describe('product pictures', () => {
+  const SETTINGS = 'GET /api/v1/admin/uploads/settings';
+  const UPLOAD = 'POST /api/v1/admin/uploads/images';
+
+  it('uploads pictures and adds their addresses to the product', async () => {
+    const fake = signedIn(['ADMIN'], {
+      [SETTINGS]: [
+        200,
+        { enabled: true, maxBytes: 5 * 1024 * 1024, contentTypes: ['image/jpeg', 'image/png'] },
+      ],
+      [UPLOAD]: [
+        201,
+        {
+          url: 'https://images.leyubid.com/products/2026/11/a.jpg',
+          key: 'k',
+          contentType: 'image/jpeg',
+          sizeBytes: 3,
+        },
+      ],
+    });
+    const { user } = renderApp('/products/new');
+    await screen.findByRole('button', { name: 'Upload pictures' });
+
+    await user.upload(
+      screen.getByLabelText('Pictures to upload'),
+      new File([new Uint8Array([0xff, 0xd8, 0xff])], 'prize.jpg', { type: 'image/jpeg' }),
+    );
+
+    expect(await screen.findByLabelText('Picture 1 address')).toHaveValue(
+      'https://images.leyubid.com/products/2026/11/a.jpg',
+    );
+    const [call] = fake.callsTo(UPLOAD);
+    expect(call.contentType).toMatch(/^multipart\/form-data; boundary=/);
+    expect(call.body).toContain('name="file"');
+  });
+
+  it('refuses a picture larger than the server allows, without sending it', async () => {
+    const fake = signedIn(['ADMIN'], {
+      [SETTINGS]: [200, { enabled: true, maxBytes: 2, contentTypes: ['image/jpeg'] }],
+    });
+    const { user } = renderApp('/products/new');
+    await screen.findByRole('button', { name: 'Upload pictures' });
+    await user.upload(
+      screen.getByLabelText('Pictures to upload'),
+      new File([new Uint8Array(5)], 'huge.jpg', { type: 'image/jpeg' }),
+    );
+    expect(await screen.findByRole('alert')).toHaveTextContent('huge.jpg is larger than');
+    expect(fake.callsTo(UPLOAD)).toHaveLength(0);
+  });
+
+  it('offers only addresses while the server has no storage', async () => {
+    signedIn(['ADMIN'], { [SETTINGS]: [200, { enabled: false, maxBytes: 0, contentTypes: [] }] });
+    renderApp('/products/new');
+    expect(await screen.findByRole('button', { name: 'Add by address' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Upload pictures' })).not.toBeInTheDocument();
+  });
+});

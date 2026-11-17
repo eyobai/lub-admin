@@ -10,6 +10,7 @@ import { useAuth } from '../auth/useAuth';
 import { Alert, Button } from '../components/ui';
 import { usePageTitle } from '../lib/usePageTitle';
 import { PRODUCT_STATUSES } from '../admin/constants';
+import { PictureUpload } from '../admin/PictureUpload';
 
 type Product = Schemas['ProductDto'];
 type Status = (typeof PRODUCT_STATUSES)[number];
@@ -189,18 +190,27 @@ function ProductForm({ product }: { product?: Product }) {
           title="Pictures"
           actions={
             editable && (
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => set('images', [...form.images, { url: '', altText: '' }])}
-              >
-                Add picture
-              </Button>
+              <div className="flex flex-wrap items-start gap-2">
+                <PictureUpload
+                  onUploaded={(url) =>
+                    setForm((f) => ({ ...f, images: [...f.images, { url, altText: '' }] }))
+                  }
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => set('images', [...form.images, { url: '', altText: '' }])}
+                >
+                  Add by address
+                </Button>
+              </div>
             )
           }
         >
           {form.images.length === 0 && (
-            <p className="text-sm text-slate-500">No pictures. Add the address (https://…) of each one.</p>
+            <p className="text-sm text-slate-500">
+              No pictures yet. Upload them, or add the address (https://…) of each one.
+            </p>
           )}
           <ul className="space-y-3">
             {form.images.map((image, i) => (

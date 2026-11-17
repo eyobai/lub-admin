@@ -738,6 +738,46 @@ export interface paths {
         patch: operations["AdminProductsController_update"];
         trace?: never;
     };
+    "/api/v1/admin/uploads/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Whether picture uploads are available
+         * @description Role: ADMIN.
+         */
+        get: operations["AdminUploadsController_settings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/uploads/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload a product picture
+         * @description Role: ADMIN. Multipart form with one `file` field: a JPEG, PNG or WebP picture. Stores it and returns its public address, to put in a product’s images.
+         */
+        post: operations["AdminUploadsController_upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auctions": {
         parameters: {
             query?: never;
@@ -1112,6 +1152,26 @@ export interface paths {
          * @description Auctions I won, with the verification status and the progress of the prize delivery.
          */
         get: operations["WinnersController_listMine"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/winners/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a recent winner with the full draw
+         * @description No sign-in needed. A published winner plus how many bids each amount received, so anyone can check that the winning amount was the lowest one bid exactly once. Never shows who placed the other bids.
+         */
+        get: operations["WinnersController_getPublished"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2528,6 +2588,43 @@ export interface components {
              */
             status?: "AVAILABLE" | "RESERVED" | "UNAVAILABLE" | "ARCHIVED";
         };
+        UploadSettingsDto: {
+            /** @description False while storage is not set up: pictures are then added by address only */
+            enabled: boolean;
+            /**
+             * @description Largest picture accepted, in bytes
+             * @example 5242880
+             */
+            maxBytes: number;
+            /**
+             * @example [
+             *       "image/jpeg",
+             *       "image/png",
+             *       "image/webp"
+             *     ]
+             */
+            contentTypes: string[];
+        };
+        UploadImageDto: {
+            /**
+             * Format: binary
+             * @description A JPEG, PNG or WebP picture
+             */
+            file: string;
+        };
+        UploadedImageDto: {
+            /**
+             * @description Public address
+             * @example https://images.leyubid.com/products/2026/11/2f1c.jpg
+             */
+            url: string;
+            /** @example products/2026/11/2f1c.jpg */
+            key: string;
+            /** @example image/jpeg */
+            contentType: string;
+            /** @example 182044 */
+            sizeBytes: number;
+        };
         ProductSummaryDto: {
             /** Format: uuid */
             id: string;
@@ -3194,6 +3291,58 @@ export interface components {
             total: number;
             page: number;
             limit: number;
+        };
+        PublicWinnerDetailDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            auctionId: string;
+            auctionTitle: string;
+            productName: string;
+            productImageUrl: string | null;
+            /**
+             * @description The winning bid. Integer amount in minor units (santim for ETB), as a string so large values keep full precision.
+             * @example 400
+             */
+            amountMinor: string;
+            /**
+             * @description The same amount formatted in major units for display. Do not use it for arithmetic.
+             * @example 4.00
+             */
+            amount: string;
+            /** @example ETB */
+            currency: string;
+            /**
+             * @description The winner’s phone number with the middle digits hidden
+             * @example +2519*****67
+             */
+            winnerLabel: string;
+            /** Format: date-time */
+            publishedAt: string;
+            /**
+             * @description The auction's bid fee. Integer amount in minor units (santim for ETB), as a string so large values keep full precision.
+             * @example 2500
+             */
+            bidFeeMinor: string;
+            /**
+             * @description The same amount formatted in major units for display. Do not use it for arithmetic.
+             * @example 25.00
+             */
+            bidFee: string;
+            /** @example 1191 */
+            totalBids: number;
+            /**
+             * @description Number of different amounts that were bid
+             * @example 150
+             */
+            distinctAmounts: number;
+            /**
+             * @description Number of amounts that were bid exactly once
+             * @example 60
+             */
+            uniqueAmounts: number;
+            /** @description How many bids each amount received, lowest amount first. Never who bid them. */
+            histogram: components["schemas"]["ResultHistogramEntryDto"][];
         };
         SubmitDeliveryDetailsDto: {
             /** @example Abebe Kebede */
@@ -5719,6 +5868,129 @@ export interface operations {
             };
         };
     };
+    AdminUploadsController_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadSettingsDto"];
+                };
+            };
+            /** @description UNAUTHORIZED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description FORBIDDEN — the signed-in user lacks the required role */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    AdminUploadsController_upload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["UploadImageDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadedImageDto"];
+                };
+            };
+            /** @description VALIDATION_FAILED — no file */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description UNAUTHORIZED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description FORBIDDEN — the signed-in user lacks the required role */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PAYLOAD_TOO_LARGE */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description UNSUPPORTED_IMAGE — not a JPEG, PNG or WebP picture */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description UPLOAD_FAILED — the storage service refused or did not answer */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description UPLOADS_UNAVAILABLE — storage is not set up */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
     AuctionsController_list: {
         parameters: {
             query?: {
@@ -6795,6 +7067,36 @@ export interface operations {
             };
             /** @description UNAUTHORIZED */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    WinnersController_getPublished: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicWinnerDetailDto"];
+                };
+            };
+            /** @description NOT_FOUND — no such published winner */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
