@@ -248,12 +248,7 @@ function DeliveryForm({
   const [form, setForm] = useState({
     recipientName: d.recipientName ?? '',
     recipientPhone: d.recipientPhone ?? '',
-    region: d.address?.region ?? '',
     city: d.address?.city ?? '',
-    subCity: d.address?.subCity ?? '',
-    woreda: d.address?.woreda ?? '',
-    houseNumber: d.address?.houseNumber ?? '',
-    landmark: d.address?.landmark ?? '',
     trackingInfo: d.trackingInfo ?? '',
     notes: d.notes ?? '',
   });
@@ -271,13 +266,6 @@ function DeliveryForm({
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (
-      !form.city.trim() &&
-      (form.region || form.subCity || form.woreda || form.houseNumber || form.landmark)
-    ) {
-      setFailure('An address needs at least a city.');
-      return;
-    }
     setBusy(true);
     setFailure(null);
     try {
@@ -287,16 +275,8 @@ function DeliveryForm({
           body: {
             recipientName: text(form.recipientName),
             recipientPhone: text(form.recipientPhone),
-            address: form.city.trim()
-              ? {
-                  city: form.city.trim(),
-                  region: text(form.region),
-                  subCity: text(form.subCity),
-                  woreda: text(form.woreda),
-                  houseNumber: text(form.houseNumber),
-                  landmark: text(form.landmark),
-                }
-              : undefined,
+            // Like the winner's own form: the city only; the rest of the address is arranged on the phone.
+            address: form.city.trim() ? { city: form.city.trim() } : undefined,
             trackingInfo: text(form.trackingInfo),
             notes: text(form.notes),
           },
@@ -316,12 +296,7 @@ function DeliveryForm({
       <div className="grid gap-3 sm:grid-cols-2">
         {field('recipientName', 'Recipient name')}
         {field('recipientPhone', 'Recipient phone')}
-        {field('city', 'City')}
-        {field('region', 'Region')}
-        {field('subCity', 'Sub-city')}
-        {field('woreda', 'Woreda')}
-        {field('houseNumber', 'House number')}
-        {field('landmark', 'Landmark')}
+        {field('city', 'City or town')}
         {field('trackingInfo', 'Tracking', true)}
       </div>
       <TextArea
