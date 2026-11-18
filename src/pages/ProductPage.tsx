@@ -2,8 +2,8 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { errorMessage } from '../api/errors';
 import { api, unwrap, useOne, useRefresh, type Schemas } from '../admin/api';
-import { MoneyField, SelectField, TextArea, TextField } from '../admin/fields';
-import { humanize, minorToText, moneyToMinor, when } from '../admin/format';
+import { SelectField, TextArea, TextField } from '../admin/fields';
+import { humanize, when } from '../admin/format';
 import { Loaded, PageHeader, Panel, StatusPill } from '../admin/kit';
 import { can, NEEDS } from '../auth/roles';
 import { useAuth } from '../auth/useAuth';
@@ -20,7 +20,6 @@ interface Form {
   brand: string;
   model: string;
   description: string;
-  marketValue: string;
   status: Status;
   images: { url: string; altText: string }[];
   specs: { key: string; value: string }[];
@@ -32,7 +31,6 @@ function toForm(p?: Product): Form {
     brand: p?.brand ?? '',
     model: p?.model ?? '',
     description: p?.description ?? '',
-    marketValue: minorToText(p?.marketValueMinor),
     status: (p?.status as Status) ?? 'AVAILABLE',
     images: p?.images.map((i) => ({ url: i.url, altText: i.altText ?? '' })) ?? [],
     specs: Object.entries(p?.specifications ?? {})
@@ -92,7 +90,7 @@ function ProductForm({ product }: { product?: Product }) {
   const navigate = useNavigate();
   const refresh = useRefresh();
   const [form, setForm] = useState<Form>(() => toForm(product));
-  const [errors, setErrors] = useState<Partial<Record<'name' | 'marketValue', string>>>({});
+  const [errors, setErrors] = useState<Partial<Record<'name', string>>>({});
   const [failure, setFailure] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -103,22 +101,14 @@ function ProductForm({ product }: { product?: Product }) {
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    const marketValueMinor = moneyToMinor(form.marketValue);
-    const next = {
-      name: form.name.trim() ? undefined : 'Give the product a name.',
-      marketValue:
-        marketValueMinor && marketValueMinor !== '0'
-          ? undefined
-          : 'Enter what the prize is worth, e.g. 65000.',
-    };
+    const next = { name: form.name.trim() ? undefined : 'Give the product a name.' };
     setErrors(next);
-    if (next.name || next.marketValue || !marketValueMinor) return;
+    if (next.name) return;
     const body = {
       name: form.name.trim(),
       brand: form.brand.trim() || undefined,
       model: form.model.trim() || undefined,
       description: form.description.trim() || undefined,
-      marketValueMinor,
       status: form.status,
       images: form.images
         .filter((i) => i.url.trim())
@@ -163,13 +153,6 @@ function ProductForm({ product }: { product?: Product }) {
             />
             <TextField label="Brand" value={form.brand} onChange={(e) => set('brand', e.target.value)} />
             <TextField label="Model" value={form.model} onChange={(e) => set('model', e.target.value)} />
-            <MoneyField
-              label="Worth"
-              value={form.marketValue}
-              onChange={(e) => set('marketValue', e.target.value)}
-              error={errors.marketValue}
-              hint="Shown to bidders as the prize's value."
-            />
             <SelectField
               label="Status"
               value={form.status}

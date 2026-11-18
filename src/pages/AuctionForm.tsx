@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { errorMessage } from '../api/errors';
 import { api, unwrap, useOne, type Schemas } from '../admin/api';
 import { MoneyField, SelectField, TextArea, TextField } from '../admin/fields';
-import { fromLocalInput, minorToText, money, moneyToMinor, toLocalInput } from '../admin/format';
+import { fromLocalInput, minorToText, moneyToMinor, toLocalInput } from '../admin/format';
 import { Panel } from '../admin/kit';
 import { Alert, Button } from '../components/ui';
 
@@ -146,9 +146,7 @@ export function AuctionForm({
             error={errors.productId}
             options={[
               ['', products.isPending ? 'Loading products…' : 'Choose a product'] as const,
-              ...choices.map(
-                (p) => [p.id, `${p.name} — worth ${money(p.marketValueMinor, p.currency)}`] as const,
-              ),
+              ...choices.map((p) => [p.id, p.name] as const),
             ]}
             hint="Only available products are listed."
             className="sm:col-span-2"

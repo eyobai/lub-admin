@@ -73,7 +73,6 @@ function AuctionDetail({ auction: a }: { auction: Auction }) {
             <Link to={`/products/${a.product.id}`} className="underline">
               {a.product.name}
             </Link>
-            · worth {money(a.product.marketValueMinor, a.product.currency)}
           </span>
         }
         actions={

@@ -454,10 +454,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Whether money can be added online, and the limits
-         * @description Ask this before showing an "add money" form.
+         * Whether money can be added online, the limits and the top-up bonus
+         * @description No sign-in needed. Ask this before showing an "add money" form or a bonus offer.
          */
-        get: operations["DepositsController_options"];
+        get: operations["DepositOptionsController_options"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2494,16 +2494,6 @@ export interface components {
             model: string | null;
             /** @example ETB */
             currency: string;
-            /**
-             * @description Integer amount in minor units (santim for ETB), as a string so large values keep full precision.
-             * @example 6500000
-             */
-            marketValueMinor: string;
-            /**
-             * @description The same amount formatted in major units for display. Do not use it for arithmetic.
-             * @example 65000.00
-             */
-            marketValue: string;
             specifications: {
                 [key: string]: unknown;
             } | null;
@@ -2539,11 +2529,6 @@ export interface components {
             /** @example SM-A556E */
             model?: string | null;
             /**
-             * @description Market value. Integer amount in minor units (santim for ETB), as a string so large values keep full precision.
-             * @example 6500000
-             */
-            marketValueMinor: string;
-            /**
              * @description ISO-4217 code. Defaults to the platform currency.
              * @example ETB
              */
@@ -2572,11 +2557,6 @@ export interface components {
             description?: string | null;
             brand?: string | null;
             model?: string | null;
-            /**
-             * @description Market value. Integer amount in minor units (santim for ETB), as a string so large values keep full precision.
-             * @example 6500000
-             */
-            marketValueMinor?: string;
             specifications?: {
                 [key: string]: unknown;
             } | null;
@@ -2634,16 +2614,6 @@ export interface components {
             model: string | null;
             /** @example ETB */
             currency: string;
-            /**
-             * @description Integer amount in minor units (santim for ETB), as a string so large values keep full precision.
-             * @example 6500000
-             */
-            marketValueMinor: string;
-            /**
-             * @description The same amount formatted in major units for display. Do not use it for arithmetic.
-             * @example 65000.00
-             */
-            marketValue: string;
             specifications: {
                 [key: string]: unknown;
             } | null;
@@ -4910,7 +4880,7 @@ export interface operations {
             };
         };
     };
-    DepositsController_options: {
+    DepositOptionsController_options: {
         parameters: {
             query?: never;
             header?: never;
@@ -4925,15 +4895,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DepositOptionsDto"];
-                };
-            };
-            /** @description UNAUTHORIZED */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
         };

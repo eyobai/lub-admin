@@ -130,8 +130,6 @@ export function anAuction(overrides: Partial<Schemas['AdminAuctionDto']> = {}): 
       brand: 'Apple',
       model: null,
       currency: 'ETB',
-      marketValueMinor: '18000000',
-      marketValue: '180000.00',
       specifications: {},
       images: [],
     },

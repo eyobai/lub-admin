@@ -1,6 +1,6 @@
 import { PRODUCT_STATUSES } from '../admin/constants';
 import { api, PAGE_SIZE, unwrap, useList } from '../admin/api';
-import { money, when } from '../admin/format';
+import { when } from '../admin/format';
 import { FilterBar, Loaded, PageHeader, SearchFilter, SelectFilter, StatusPill, Table } from '../admin/kit';
 import { opt, useUrlFilters } from '../admin/filters';
 import { can, NEEDS } from '../auth/roles';
@@ -80,11 +80,6 @@ export function ProductsPage() {
                 {
                   header: 'Brand / model',
                   cell: (p) => [p.brand, p.model].filter(Boolean).join(' · ') || '—',
-                },
-                {
-                  header: 'Worth',
-                  cell: (p) => money(p.marketValueMinor, p.currency),
-                  className: 'tabular-nums whitespace-nowrap',
                 },
                 { header: 'Status', cell: (p) => <StatusPill status={p.status} /> },
                 {
